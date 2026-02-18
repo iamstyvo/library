@@ -1,0 +1,58 @@
+services:
+  # Frontend Service
+  - type: web
+    name: book-lab-frontend
+    env: static
+    buildCommand: cd app && npm install && npm run build
+    publishDirectory: app/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: "1; mode=block"
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+    envVars:
+      - key: VITE_API_URL
+        value: https://book-lab-backend.onrender.com/api
+        sync: false
+
+  # Backend Service
+  - type: web
+    name: book-lab-backend
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+        sync: false
+      - key: PORT
+        value: 5000
+        sync: false
+      - key: MONGODB_URI
+        value: ${MONGODB_URI}
+        sync: false
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+        sync: false
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: https://book-lab-frontend.onrender.com
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: GET, POST, PUT, DELETE, OPTIONS
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: Content-Type, Authorization
+      - path: /*
+        name: Access-Control-Allow-Credentials
+        value: "true"
